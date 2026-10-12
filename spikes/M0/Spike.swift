@@ -1,7 +1,7 @@
 // M0 spike harness. Throwaway code: see spikes/M0/README.md for the findings.
 //
 //   FocusUpSpike target --name A --windows 2 --x 250 --y 250
-//   FocusUpSpike send --name A --cmd front:0|activate|fullscreen:0|quit
+//   FocusUpSpike send --name A --cmd front:0|activate|fullscreen:0|close:0|quit
 //   FocusUpSpike overlay --below <windowNumber> --x --y --w --h [--duration 30]
 //   FocusUpSpike raise --pid <pid> --method activate|yield|ax
 //   FocusUpSpike click --x <x> --y <y>
@@ -91,6 +91,7 @@ case "target":
         case "front": windows[index].orderFrontRegardless()
         case "activate": NSApp.activate()
         case "fullscreen": windows[index].toggleFullScreen(nil)
+        case "close": windows[index].orderOut(nil)
         case "quit": NSApp.terminate(nil)
         default: break
         }

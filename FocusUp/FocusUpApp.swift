@@ -2,10 +2,14 @@ import SwiftUI
 
 @main
 struct FocusUpApp: App {
+    private let controller = FocusController.shared
+
     var body: some Scene {
-        MenuBarExtra("Focus Up", systemImage: "circle.dashed.inset.filled") {
-            Button("Quit Focus Up") { NSApp.terminate(nil) }
-                .keyboardShortcut("q")
+        MenuBarExtra {
+            MenuContent(controller: controller)
+        } label: {
+            Image(systemName: controller.isEnabled ? "circle.dashed.inset.filled" : "circle.dashed")
         }
+        .menuBarExtraStyle(.window)
     }
 }

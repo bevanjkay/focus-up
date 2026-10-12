@@ -11,7 +11,7 @@ Focus Up is a native macOS menu-bar app that keeps one app (or window) in focus 
 | Form | Menu-bar only (`LSUIElement`), with a SwiftUI `MenuBarExtra` and a Settings window |
 | Distribution | GitHub Releases, signed with Developer ID and notarised; updates through Sparkle. No App Store. |
 | Focus Scope | App by default with Raise-all; window scope optional (needs Accessibility) |
-| Effect | Public API material blur plus dim; one Intensity slider (opacity and dim) |
+| Effect | Public API material blur plus dim; one Intensity slider (dim; blur stays fully opaque) |
 | Displays | One Overlay per display; Focused App sharp wherever it is |
 | Spaces | Overlay joins all Spaces; hidden when the Focused App is full-screen; Stage Manager strip blurred |
 | Clicks | Overlay is click-through; clicking a blurred window focuses it |

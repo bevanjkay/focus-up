@@ -3,12 +3,11 @@ import Testing
 @testable import FocusCore
 
 struct OverlayAppearanceTests {
-    @Test func intensityScalesBlurAndDim() {
+    @Test func intensityScalesDimOnly() {
         let low = OverlayAppearance(intensity: 0)
         let high = OverlayAppearance(intensity: 1)
-        #expect(low.blurOpacity < high.blurOpacity)
-        #expect(low.dimOpacity == 0)
-        #expect(high.blurOpacity == 1)
+        #expect(low.dimOpacity < high.dimOpacity)
+        #expect(low.dimOpacity > 0)
     }
 
     @Test func intensityIsClamped() {

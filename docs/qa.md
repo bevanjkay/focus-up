@@ -6,6 +6,7 @@ Run before each release, on macOS 27. Each item should pass in both app scope an
 - [ ] Toggle Focus Mode from the menu, `⌃⌥⌘F` and a recorded custom hotkey.
 - [ ] Switching apps with ⌘-Tab, the Dock and a click moves the blur within about 200 ms, with no flash of unblurred content.
 - [ ] App scope: an app with windows interleaved behind other apps has all its windows sharp after activation (Raise-all).
+- [ ] App scope: switching between windows of the Focused App doesn't fade the blur.
 - [ ] Clicking a blurred area focuses the window underneath.
 - [ ] Finder with only the desktop focused, or an app with all windows minimised, hides the Overlay.
 - [ ] Reduce Motion on gives instant transitions.
