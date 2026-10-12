@@ -17,8 +17,8 @@ final class OverlayController {
     }
 
     func apply(
-        _ plan: OverlayPlan, frame: NSRect, cutouts: [CGRect], appearance: OverlayAppearance, animated: Bool,
-        crossfade: Bool = true
+        _ plan: OverlayPlan, frame: NSRect, cutouts: [CGRect], appearance: OverlayAppearance, style: FocusStyle,
+        wallpaper: Wallpaper?, animated: Bool, crossfade: Bool = true
     ) {
         let duration = animated && !NSWorkspace.shared.accessibilityDisplayShouldReduceMotion ? Self.fadeDuration : 0
         guard plan.isVisible, let anchor = plan.orderBelowWindow else {
@@ -26,14 +26,16 @@ final class OverlayController {
             return
         }
         if current.isVisible, current.orderedBelowWindow == anchor || !crossfade {
-            current.configure(frame: frame, appearance: appearance, cutouts: cutouts)
+            current.configure(
+                frame: frame, appearance: appearance, cutouts: cutouts, style: style, wallpaper: wallpaper)
             current.order(below: anchor)
             if current.alphaValue < 1 { fade(current, to: 1, duration: duration) }
             return
         }
         let outgoing = current
         swap(&current, &spare)
-        current.configure(frame: frame, appearance: appearance, cutouts: cutouts)
+        current.configure(
+            frame: frame, appearance: appearance, cutouts: cutouts, style: style, wallpaper: wallpaper)
         current.alphaValue = 0
         current.order(below: anchor)
         fade(current, to: 1, duration: duration)

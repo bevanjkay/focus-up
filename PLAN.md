@@ -12,6 +12,7 @@ Focus Up is a native macOS menu-bar app that keeps one app (or window) in focus 
 | Distribution | GitHub Releases, signed with Developer ID and notarised; updates through Sparkle. No App Store. |
 | Focus Scope | App by default with Raise-all; window scope optional (needs Accessibility) |
 | Effect | Public API material blur plus dim; one Intensity slider (dim; blur stays fully opaque) |
+| Focus Style | Blur (default), Hide (show desktop) or Hide (blur desktop): the hide styles paint the wallpaper over other windows ([ADR 5](docs/adr/0005-hide-styles-paint-the-wallpaper.md)) |
 | Displays | One Overlay per display; Focused App sharp wherever it is |
 | Spaces | Overlay joins all Spaces; hidden when the Focused App is full-screen; Stage Manager strip blurred |
 | Clicks | Overlay is click-through; clicking a blurred window focuses it |

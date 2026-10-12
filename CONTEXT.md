@@ -9,6 +9,7 @@ Shared vocabulary for the code, docs and UI. Use these terms exactly; don't intr
 | **Focused Window** | The window that stays sharp in window scope: the app's key window plus its sheets, pop-overs and floating panels. |
 | **Focus Scope** | Either `app` (default) or `window`. Window scope requires Accessibility permission. |
 | **Overlay** | The borderless, click-through, blurred window Focus Up places on each display, ordered directly below the Focused App/Window. |
+| **Focus Style** | How everything outside the focus is treated: `Blur` (default), `Hide (show desktop)` or `Hide (blur desktop)`. Hide styles paint the wallpaper over other windows. |
 | **Intensity** | The single user-facing slider. Controls the Overlay's dim; the blur stays fully opaque and its radius is fixed by the system material. |
 | **Raise-all** | Bringing every window of the Focused App forward when it gains focus, so app scope keeps all its windows sharp. |
 | **Pinned App** | An app whose windows are never blurred, achieved with Cut-outs. |

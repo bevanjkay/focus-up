@@ -57,3 +57,15 @@ public enum FocusScope: String, CaseIterable, Codable, Sendable {
     case app
     case window
 }
+
+/// How everything outside the focus is treated.
+public enum FocusStyle: String, CaseIterable, Codable, Sendable {
+    /// Blur whatever is behind the Overlay.
+    case blur
+    /// Hide other windows behind the desktop wallpaper.
+    case hide
+    /// Hide other windows behind a blurred desktop wallpaper.
+    case hideBlurred
+
+    public var hidesWindows: Bool { self != .blur }
+}

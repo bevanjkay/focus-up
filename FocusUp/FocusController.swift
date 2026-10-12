@@ -12,6 +12,7 @@ final class FocusController {
     private enum Key {
         static let isEnabled = "focusModeEnabled"
         static let intensity = "intensity"
+        static let style = "focusStyle"
     }
 
     private static let pollInterval: TimeInterval = 0.5
@@ -33,6 +34,16 @@ final class FocusController {
         }
     }
 
+    var style: FocusStyle {
+        didSet {
+            defaults.set(style.rawValue, forKey: Key.style)
+            refresh(force: true)
+            if style.hidesWindows { checkWallpaperAccess(requestingPermission: true) }
+        }
+    }
+
+    let wallpapers = WallpaperProvider()
+
     private(set) var focusedApp: AppInfo?
 
     @ObservationIgnored private let defaults: UserDefaults
@@ -48,11 +59,22 @@ final class FocusController {
         self.defaults = defaults
         isEnabled = defaults.bool(forKey: Key.isEnabled)
         intensity = defaults.object(forKey: Key.intensity) as? Double ?? OverlayAppearance.defaultIntensity
+        style = defaults.string(forKey: Key.style).flatMap(FocusStyle.init) ?? .blur
+        wallpapers.onUpdate = { [weak self] in self?.refresh(force: true) }
+        if style.hidesWindows { checkWallpaperAccess(requestingPermission: false) }
         KeyboardShortcuts.onKeyUp(for: .toggleFocusMode) { [weak self] in self?.isEnabled.toggle() }
         if isEnabled { start() }
     }
 
     func toggle() { isEnabled.toggle() }
+
+    /// Works out whether the hide styles need Screen Recording, even while Focus Mode is off and nothing is drawn.
+    private func checkWallpaperAccess(requestingPermission: Bool) {
+        for screen in NSScreen.screens { _ = wallpapers.wallpaper(for: screen) }
+        if requestingPermission, wallpapers.needsScreenCapturePermission {
+            wallpapers.requestScreenCapturePermission()
+        }
+    }
 
     // MARK: - Lifecycle
 
@@ -74,7 +96,9 @@ final class FocusController {
         lastPlan = nil
         lastPlannedPID = nil
         for overlay in overlays.values {
-            overlay.apply(.hidden, frame: .zero, cutouts: [], appearance: appearance, animated: true)
+            overlay.apply(
+                .hidden, frame: .zero, cutouts: [], appearance: appearance, style: style, wallpaper: nil,
+                animated: true)
         }
     }
 
@@ -162,6 +186,7 @@ final class FocusController {
             overlays[screen.displayID] = overlay
             overlay.apply(
                 plan, frame: screen.frame, cutouts: plan.cutouts[screen.displayID] ?? [], appearance: appearance,
+                style: style, wallpaper: style.hidesWindows ? wallpapers.wallpaper(for: screen) : nil,
                 animated: animated, crossfade: crossfade)
         }
         let connected = Set(screens.map(\.displayID))

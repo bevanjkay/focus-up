@@ -19,6 +19,13 @@ Run before each release, on macOS 27. Each item should pass in both app scope an
 - [ ] A full-screen Focused App shows no Overlay; leaving full-screen restores it.
 - [ ] Stage Manager: the side strip is blurred, and switching stages behaves.
 
+## Focus Style
+- [ ] Hide (show desktop) covers every other window with the wallpaper, with the right scaling on each display.
+- [ ] Hide (blur desktop) shows the wallpaper blurred and dimmed.
+- [ ] A wallpaper from a system folder or Pictures shows without Screen Recording permission.
+- [ ] A wallpaper from a wallpaper app (such as Unsplash) prompts for Screen Recording, then shows correctly.
+- [ ] Changing the wallpaper while a hide style is on updates within a refresh.
+
 ## Settings and lists
 - [ ] Focus Up's Settings window is never blurred and previews Intensity changes live.
 - [ ] An Ignored App activating leaves the previous Focused App in focus.
