@@ -81,7 +81,7 @@ Each milestone ends with its tests green and the relevant `docs/qa.md` items che
    - Overlay behaviour with Stage Manager and full-screen.
 1. **Project skeleton**:
    - Xcode project, `FocusCore` package and String Catalog.
-   - SwiftLint/SwiftFormat config.
+   - `swift format` config (bundled with Xcode, so CI needs no extra installs).
    - GitHub Actions `checks.yml` running build and test on PRs.
    - README and LICENSE.
 2. **FocusCore, test first**: `FocusResolver`, `OverlayPlanner` and `CutoutGeometry`, with fakes for every case in the decision table.
