@@ -2,6 +2,8 @@
 
 Focus Up is a native macOS menu-bar app that keeps one app in focus by blurring everything else.
 
+**[Website](https://bevanjkay.github.io/focus-up/)** · **[Download](https://github.com/bevanjkay/focus-up/releases/latest)**
+
 > [!NOTE]
 > Early development. See [PLAN.md](PLAN.md) for the roadmap and [CONTEXT.md](CONTEXT.md) for the vocabulary used throughout the code.
 
