@@ -81,6 +81,7 @@ final class FocusController {
     private(set) var focusedApp: AppInfo?
 
     @ObservationIgnored private let defaults: UserDefaults
+    @ObservationIgnored private var settingsBeforeFocusFilter: FocusFilterSettings?
     @ObservationIgnored private var overlays: [UInt32: OverlayController] = [:]
     @ObservationIgnored private var lastPlan: OverlayPlan?
     @ObservationIgnored private var lastPlannedPID: Int32?
@@ -125,6 +126,28 @@ final class FocusController {
         for screen in NSScreen.screens { _ = wallpapers.wallpaper(for: screen) }
         if requestingPermission, wallpapers.needsScreenCapturePermission {
             wallpapers.requestScreenCapturePermission()
+        }
+    }
+
+    /// Applies a Focus filter. Overridden settings are restored when the Focus ends.
+    func applyFocusFilter(_ filter: FocusFilterSettings) {
+        if filter.isOn {
+            settingsBeforeFocusFilter =
+                settingsBeforeFocusFilter
+                ?? FocusFilterSettings(
+                    isOn: isEnabled, scope: scope, style: style, intensity: intensity)
+            filter.scope.map { scope = $0 }
+            filter.style.map { style = $0 }
+            filter.intensity.map { intensity = $0 }
+            isEnabled = true
+        } else if let previous = settingsBeforeFocusFilter {
+            settingsBeforeFocusFilter = nil
+            previous.scope.map { scope = $0 }
+            previous.style.map { style = $0 }
+            previous.intensity.map { intensity = $0 }
+            isEnabled = previous.isOn
+        } else {
+            isEnabled = false
         }
     }
 
@@ -282,4 +305,11 @@ final class FocusController {
             }
         }
     }
+}
+
+struct FocusFilterSettings {
+    var isOn: Bool
+    var scope: FocusScope?
+    var style: FocusStyle?
+    var intensity: Double?
 }
