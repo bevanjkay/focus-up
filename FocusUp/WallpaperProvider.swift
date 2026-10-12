@@ -14,6 +14,8 @@ private let logger = Logger(subsystem: "me.bevankay.FocusUp", category: "Wallpap
 final class WallpaperProvider {
     /// Captures are refreshed so dynamic wallpapers stay roughly current.
     private static let captureLifetime: Duration = .seconds(600)
+    /// Refreshes can run at 15 Hz while windows are pinned; looking the wallpaper up that often is wasteful.
+    private static let lookupLifetime: Duration = .seconds(2)
 
     private(set) var needsScreenCapturePermission = false
 
@@ -21,8 +23,18 @@ final class WallpaperProvider {
     @ObservationIgnored private var files: [URL: CGImage?] = [:]
     @ObservationIgnored private var captures: [UInt32: (url: URL, image: CGImage, time: ContinuousClock.Instant)] = [:]
     @ObservationIgnored private var capturesInFlight: Set<UInt32> = []
+    @ObservationIgnored private var recent: [UInt32: (wallpaper: Wallpaper, time: ContinuousClock.Instant)] = [:]
 
     func wallpaper(for screen: NSScreen) -> Wallpaper {
+        if let recent = recent[screen.displayID], ContinuousClock.now - recent.time < Self.lookupLifetime {
+            return recent.wallpaper
+        }
+        let wallpaper = lookUpWallpaper(for: screen)
+        recent[screen.displayID] = (wallpaper, .now)
+        return wallpaper
+    }
+
+    private func lookUpWallpaper(for screen: NSScreen) -> Wallpaper {
         let workspace = NSWorkspace.shared
         let options = workspace.desktopImageOptions(for: screen) ?? [:]
         let fillColour = (options[.fillColor] as? NSColor)?.cgColor ?? NSColor.black.cgColor
@@ -71,6 +83,7 @@ final class WallpaperProvider {
                 capturesInFlight.remove(displayID)
                 guard let image else { return }
                 captures[displayID] = (url, image, .now)
+                recent[displayID] = nil
                 onUpdate()
             }
         }

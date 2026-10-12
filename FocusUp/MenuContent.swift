@@ -3,6 +3,7 @@ import SwiftUI
 
 struct MenuContent: View {
     @Bindable var controller: FocusController
+    @Environment(\.openWindow) private var openWindow
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -36,8 +37,16 @@ struct MenuContent: View {
 
             Divider()
 
-            Button("Quit Focus Up") { NSApp.terminate(nil) }
-                .keyboardShortcut("q")
+            HStack {
+                Button("Settings…") {
+                    openWindow(id: WindowID.settings)
+                    NSApp.activate()
+                }
+                .keyboardShortcut(",")
+                Spacer()
+                Button("Quit") { NSApp.terminate(nil) }
+                    .keyboardShortcut("q")
+            }
         }
         .padding()
         .frame(width: 260)

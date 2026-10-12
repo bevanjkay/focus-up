@@ -13,9 +13,14 @@ final class FocusController {
         static let isEnabled = "focusModeEnabled"
         static let intensity = "intensity"
         static let style = "focusStyle"
+        static let ignoredApps = "ignoredBundleIDs"
+        static let pinnedApps = "pinnedBundleIDs"
+        static let utilityApps = "utilityAppsNeverTakeFocus"
     }
 
     private static let pollInterval: TimeInterval = 0.5
+    /// Faster polling so Cut-outs follow pinned windows as they move.
+    private static let pinnedPollInterval: TimeInterval = 1.0 / 15
     /// Raise-all is asynchronous, so re-plan once the raised windows have settled.
     private static let raiseSettleDelay: Duration = .milliseconds(150)
 
@@ -42,6 +47,21 @@ final class FocusController {
         }
     }
 
+    var ignoredBundleIDs: Set<String> {
+        didSet { defaults.set(Array(ignoredBundleIDs).sorted(), forKey: Key.ignoredApps) }
+    }
+
+    var pinnedBundleIDs: Set<String> {
+        didSet {
+            defaults.set(Array(pinnedBundleIDs).sorted(), forKey: Key.pinnedApps)
+            refresh(force: true)
+        }
+    }
+
+    var utilityAppsNeverTakeFocus: Bool {
+        didSet { defaults.set(utilityAppsNeverTakeFocus, forKey: Key.utilityApps) }
+    }
+
     let wallpapers = WallpaperProvider()
 
     private(set) var focusedApp: AppInfo?
@@ -53,13 +73,26 @@ final class FocusController {
     @ObservationIgnored private var pollTimer: Timer?
     @ObservationIgnored private var observers: [(NotificationCenter, NSObjectProtocol)] = []
 
-    var rules: FocusRules { FocusRules() }
+    var rules: FocusRules {
+        FocusRules(ignoredBundleIDs: ignoredBundleIDs, utilityAppsNeverTakeFocus: utilityAppsNeverTakeFocus)
+    }
+
+    private var pinnedPIDs: Set<Int32> {
+        guard !pinnedBundleIDs.isEmpty else { return [] }
+        return Set(
+            NSWorkspace.shared.runningApplications
+                .filter { $0.bundleIdentifier.map(pinnedBundleIDs.contains) ?? false }
+                .map(\.processIdentifier))
+    }
 
     private init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
         isEnabled = defaults.bool(forKey: Key.isEnabled)
         intensity = defaults.object(forKey: Key.intensity) as? Double ?? OverlayAppearance.defaultIntensity
         style = defaults.string(forKey: Key.style).flatMap(FocusStyle.init) ?? .blur
+        ignoredBundleIDs = Set(defaults.stringArray(forKey: Key.ignoredApps) ?? [])
+        pinnedBundleIDs = Set(defaults.stringArray(forKey: Key.pinnedApps) ?? [])
+        utilityAppsNeverTakeFocus = defaults.bool(forKey: Key.utilityApps)
         wallpapers.onUpdate = { [weak self] in self?.refresh(force: true) }
         if style.hidesWindows { checkWallpaperAccess(requestingPermission: false) }
         KeyboardShortcuts.onKeyUp(for: .toggleFocusMode) { [weak self] in self?.isEnabled.toggle() }
@@ -82,15 +115,11 @@ final class FocusController {
         focusedApp = initialFocus()
         raiseIfNeeded()
         observe()
-        pollTimer = Timer.scheduledTimer(withTimeInterval: Self.pollInterval, repeats: true) { [weak self] _ in
-            MainActor.assumeIsolated { self?.refresh() }
-        }
         refresh(force: true)
     }
 
     private func stop() {
-        pollTimer?.invalidate()
-        pollTimer = nil
+        schedulePolling(interval: nil)
         for (centre, token) in observers { centre.removeObserver(token) }
         observers = []
         lastPlan = nil
@@ -173,7 +202,7 @@ final class FocusController {
         let screens = NSScreen.screens
         let plan = OverlayPlanner.plan(
             target: focusedApp.map { FocusTarget(pid: $0.pid) }, windows: SystemState.windows(),
-            displays: screens.map(\.display), pinnedPIDs: [], ownPID: SystemState.ownPID)
+            displays: screens.map(\.display), pinnedPIDs: pinnedPIDs, ownPID: SystemState.ownPID)
         // Re-apply even when the plan is unchanged: the anchor window may have moved in the stack (after
         // Raise-all, for example), and re-ordering an Overlay that is already in place is a no-op.
         let animated = !force && lastPlan != nil && plan != lastPlan
@@ -189,10 +218,21 @@ final class FocusController {
                 style: style, wallpaper: style.hidesWindows ? wallpapers.wallpaper(for: screen) : nil,
                 animated: animated, crossfade: crossfade)
         }
+        schedulePolling(interval: plan.cutouts.isEmpty ? Self.pollInterval : Self.pinnedPollInterval)
         let connected = Set(screens.map(\.displayID))
         for (id, overlay) in overlays where !connected.contains(id) {
             overlay.tearDown()
             overlays[id] = nil
+        }
+    }
+
+    private func schedulePolling(interval: TimeInterval?) {
+        guard pollTimer?.timeInterval != interval || pollTimer?.isValid != true else { return }
+        pollTimer?.invalidate()
+        pollTimer = interval.map { interval in
+            Timer.scheduledTimer(withTimeInterval: interval, repeats: true) { [weak self] _ in
+                MainActor.assumeIsolated { self?.refresh() }
+            }
         }
     }
 }
