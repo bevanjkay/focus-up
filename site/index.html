@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Focus Up - Keep one app in focus on macOS</title>
+<meta name="description" content="Focus Up keeps the app you're using sharp and blurs or hides everything else on your Mac. Timed focus sessions, window scope, pinned apps and Shortcuts. Free and open source.">
+<meta property="og:title" content="Focus Up">
+<meta property="og:description" content="Everything else can wait. Keep one app in focus by blurring the rest of your Mac.">
+<meta property="og:image" content="https://bevanjkay.github.io/focus-up/icon-256.png">
+<meta property="og:url" content="https://bevanjkay.github.io/focus-up/">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary">
+<link rel="icon" href="favicon.png" type="image/png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="nav">
+  <div class="shell nav-inner">
+    <a class="wordmark" href="/focus-up/"><img src="favicon.png" width="22" height="22" alt="">Focus Up</a>
+    <nav>
+      <a href="#styles">Styles</a>
+      <a href="#sessions">Sessions</a>
+      <a href="#install">Install</a>
+      <a href="https://github.com/bevanjkay/focus-up">GitHub</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+
+  <section class="hero shell">
+    <div class="hero-copy">
+      <h1>Everything else<br>can wait.</h1>
+      <p class="lede">Focus Up keeps the app you're using sharp and blurs the rest of your Mac. Switch apps and the focus follows you.</p>
+      <div class="cta">
+        <a class="button primary" id="download" href="https://github.com/bevanjkay/focus-up/releases/latest">Download for macOS</a>
+        <a class="button" href="https://github.com/bevanjkay/focus-up">View on GitHub</a>
+      </div>
+      <p class="meta"><span id="version">Latest release</span> for macOS 27 · signed, notarised, MIT licensed</p>
+    </div>
+
+    <figure class="demo" id="demo" data-style="blur">
+      <div class="menubar" aria-hidden="true">
+        <span class="apple"></span><b>Notes</b><span>File</span><span>Edit</span><span>View</span>
+        <span class="menubar-right"><span class="status-icon"></span><span class="countdown">24:59</span></span>
+      </div>
+      <div class="desktop">
+        <div class="wallpaper"></div>
+        <button class="win win-mail" data-app="Mail" aria-label="Focus the Mail window">
+          <span class="titlebar"><i></i><i></i><i></i>Inbox</span>
+          <span class="mail-list"><span></span><span></span><span></span><span></span><span></span></span>
+        </button>
+        <button class="win win-browser" data-app="Safari" aria-label="Focus the Safari window">
+          <span class="titlebar"><i></i><i></i><i></i><span class="url">news.example.com</span></span>
+          <span class="article"><span class="hero-block"></span><span></span><span></span><span class="short"></span></span>
+        </button>
+        <button class="win win-notes is-focused" data-app="Notes" aria-label="Focus the Notes window">
+          <span class="titlebar"><i></i><i></i><i></i>Draft</span>
+          <span class="doc"><strong>Quarterly plan</strong><span></span><span></span><span class="short"></span><span></span><span class="short"></span></span>
+        </button>
+      </div>
+      <figcaption class="demo-controls">
+        <span class="demo-hint">Click a window to focus it.</span>
+        <span class="segmented" role="radiogroup" aria-label="Focus Style">
+          <button role="radio" aria-checked="true" data-style="blur">Blur</button>
+          <button role="radio" aria-checked="false" data-style="hide">Hide</button>
+          <button role="radio" aria-checked="false" data-style="hide-blur">Hide + blur</button>
+        </span>
+      </figcaption>
+    </figure>
+  </section>
+
+  <section class="styles shell" id="styles">
+    <h2>Three ways to hide the noise</h2>
+    <div class="style-grid">
+      <article>
+        <div class="swatch swatch-blur" aria-hidden="true"><span class="sharp"></span></div>
+        <h3>Blur</h3>
+        <p>Other windows stay where they are, softened behind a frosted layer. You can still see what's waiting.</p>
+      </article>
+      <article>
+        <div class="swatch swatch-hide" aria-hidden="true"><span class="sharp"></span></div>
+        <h3>Hide, show desktop</h3>
+        <p>Everything else disappears behind your wallpaper, as if only one app were open.</p>
+      </article>
+      <article>
+        <div class="swatch swatch-hide-blur" aria-hidden="true"><span class="sharp"></span></div>
+        <h3>Hide, blur desktop</h3>
+        <p>The cleanest canvas: other windows hidden, your wallpaper blurred and dimmed.</p>
+      </article>
+    </div>
+    <p class="aside">Nothing is done to your other apps. Focus Up draws a single layer behind the app in focus, so window positions, minimised windows and Spaces stay exactly as you left them.</p>
+  </section>
+
+  <section class="bento shell" id="sessions">
+    <article class="cell cell-wide cell-accent">
+      <h3>Focus for 25 minutes, then get your screen back</h3>
+      <p>Start a session from the menu with a preset or any length. The countdown sits in the menu bar, and when time's up Focus Mode fades out and lets you know.</p>
+      <ul class="ops">
+        <li>15 min</li>
+        <li>25 min</li>
+        <li>45 min</li>
+        <li>60 min</li>
+        <li>Custom…</li>
+        <li>+5 min</li>
+      </ul>
+    </article>
+
+    <article class="cell">
+      <h3>A whole app, or one window</h3>
+      <p>App scope keeps every window of the app sharp. Window scope narrows it to the one you're typing in, and its sheets come along.</p>
+    </article>
+
+    <article class="cell">
+      <h3>Pin the things you glance at</h3>
+      <p>A video call or music player can stay visible while everything else blurs. Launchers and password managers can be told never to steal the focus.</p>
+    </article>
+
+    <article class="cell cell-wide">
+      <h3>One shortcut, plus Shortcuts</h3>
+      <p>Toggle with <kbd>⌃</kbd><kbd>⌥</kbd><kbd>⌘</kbd><kbd>F</kbd>, or record your own. Actions for Shortcuts start sessions and switch styles, and a Focus filter turns Focus Up on with your Work focus and back off when it ends.</p>
+    </article>
+  </section>
+
+  <section class="install shell" id="install">
+    <h2>Install</h2>
+    <div class="install-grid">
+      <div>
+        <ol class="steps">
+          <li><a href="https://github.com/bevanjkay/focus-up/releases/latest" id="download-inline">Download the DMG</a> and drag Focus Up to Applications.</li>
+          <li>Open it. It lives in the menu bar, with no Dock icon.</li>
+          <li>Press <kbd>⌃</kbd><kbd>⌥</kbd><kbd>⌘</kbd><kbd>F</kbd>.</li>
+        </ol>
+        <p>Updates arrive automatically through Sparkle.</p>
+      </div>
+      <div class="note">
+        <h3>Permissions, only when needed</h3>
+        <p>Blurring a whole app needs none. Window scope asks for Accessibility so it can follow the focused window. The hide styles ask for Screen Recording only when your wallpaper comes from an app macOS won't let Focus Up read.</p>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="shell footer-inner">
+    <p>Made by <a href="https://bevankay.me">Bevan Kay</a></p>
+    <nav>
+      <a href="https://github.com/bevanjkay/focus-up/issues">Report an issue</a>
+      <a href="https://github.com/bevanjkay/focus-up/releases">Releases</a>
+      <a href="https://github.com/bevanjkay/focus-up/blob/main/LICENSE">MIT</a>
+    </nav>
+  </div>
+</footer>
+
+<script>
+  (function () {
+    var demo = document.getElementById("demo");
+    var windows = Array.prototype.slice.call(demo.querySelectorAll(".win"));
+    var appName = demo.querySelector(".menubar b");
+    var stack = windows.slice();
+    var interacted = false;
+
+    // Back to front, like the real window stack: the focused window always ends up on top.
+    function focus(win) {
+      stack = stack.filter(function (w) { return w !== win; }).concat(win);
+      stack.forEach(function (w, i) {
+        w.style.zIndex = i + 1;
+        w.classList.toggle("is-focused", w === win);
+      });
+      appName.textContent = win.dataset.app;
+    }
+    focus(demo.querySelector(".win-notes"));
+
+    windows.forEach(function (win) {
+      win.addEventListener("click", function () { interacted = true; focus(win); });
+    });
+
+    demo.querySelectorAll(".segmented button").forEach(function (button) {
+      button.addEventListener("click", function () {
+        interacted = true;
+        demo.dataset.style = button.dataset.style;
+        demo.querySelectorAll(".segmented button").forEach(function (b) {
+          b.setAttribute("aria-checked", String(b === button));
+        });
+      });
+    });
+
+    if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      var next = 0;
+      var timer = setInterval(function () {
+        if (interacted) { clearInterval(timer); return; }
+        focus(windows[next % windows.length]);
+        next += 1;
+      }, 3200);
+    }
+  })();
+
+  fetch("https://api.github.com/repos/bevanjkay/focus-up/releases?per_page=5")
+    .then(function (r) { return r.ok ? r.json() : []; })
+    .then(function (releases) {
+      var release = releases.find(function (r) { return !r.draft; });
+      if (!release) return;
+      var dmg = release.assets.find(function (a) { return a.name.endsWith(".dmg"); });
+      if (dmg) {
+        document.getElementById("download").href = dmg.browser_download_url;
+        document.getElementById("download-inline").href = dmg.browser_download_url;
+      }
+      document.getElementById("version").textContent =
+        release.tag_name.replace(/^v/, "") + (release.prerelease ? " (pre-release)" : "");
+    })
+    .catch(function () {});
+</script>
+</body>
+</html>
