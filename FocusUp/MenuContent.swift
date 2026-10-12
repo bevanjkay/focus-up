@@ -11,6 +11,10 @@ struct MenuContent: View {
                 .toggleStyle(.switch)
                 .font(.headline)
 
+            SessionControls(controller: controller)
+
+            Divider()
+
             Picker("Scope", selection: $controller.scope) {
                 ForEach(FocusScope.allCases, id: \.self) { Text($0.title).tag($0) }
             }

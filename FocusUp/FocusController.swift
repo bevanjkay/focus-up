@@ -17,6 +17,8 @@ final class FocusController {
         static let pinnedApps = "pinnedBundleIDs"
         static let utilityApps = "utilityAppsNeverTakeFocus"
         static let scope = "focusScope"
+        static let session = "session"
+        static let enabledBeforeSession = "enabledBeforeSession"
     }
 
     private static let pollInterval: TimeInterval = 0.5
@@ -30,6 +32,8 @@ final class FocusController {
             guard isEnabled != oldValue else { return }
             defaults.set(isEnabled, forKey: Key.isEnabled)
             isEnabled ? start() : stop()
+            // Turning Focus Mode off by hand ends a running session there and then.
+            if !isEnabled, session != nil { finishSession(completed: false, restore: false) }
         }
     }
 
@@ -80,8 +84,19 @@ final class FocusController {
 
     private(set) var focusedApp: AppInfo?
 
+    private(set) var session: FocusSession? {
+        didSet {
+            defaults.set(session.flatMap { try? JSONEncoder().encode($0) }, forKey: Key.session)
+            tickSession()
+        }
+    }
+
+    /// Seconds left in the running session, updated every second for the menu bar countdown.
+    private(set) var sessionRemaining: TimeInterval?
+
     @ObservationIgnored private let defaults: UserDefaults
     @ObservationIgnored private var settingsBeforeFocusFilter: FocusFilterSettings?
+    @ObservationIgnored private var sessionTimer: Timer?
     @ObservationIgnored private var overlays: [UInt32: OverlayController] = [:]
     @ObservationIgnored private var lastPlan: OverlayPlan?
     @ObservationIgnored private var lastPlannedPID: Int32?
@@ -117,6 +132,51 @@ final class FocusController {
         if style.hidesWindows { checkWallpaperAccess(requestingPermission: false) }
         KeyboardShortcuts.onKeyUp(for: .toggleFocusMode) { [weak self] in self?.isEnabled.toggle() }
         if isEnabled { start() }
+        session = defaults.data(forKey: Key.session).flatMap { try? JSONDecoder().decode(FocusSession.self, from: $0) }
+        tickSession()  // Observers don't run for assignments in `init`.
+    }
+
+    // MARK: - Sessions
+
+    func startSession(minutes: Int) {
+        if session == nil { defaults.set(isEnabled, forKey: Key.enabledBeforeSession) }
+        session = FocusSession(start: .now, minutes: minutes)
+        isEnabled = true
+        SessionNotifier.requestAuthorisation()
+    }
+
+    func extendSession(byMinutes minutes: Int) {
+        session = session?.extended(byMinutes: minutes)
+    }
+
+    /// Ends the session early, returning Focus Mode to how it was before the session.
+    func endSession() {
+        finishSession(completed: false, restore: true)
+    }
+
+    private func finishSession(completed: Bool, restore: Bool) {
+        guard let finished = session else { return }
+        session = nil
+        if completed { SessionNotifier.notifyCompletion(minutes: finished.totalMinutes) }
+        if restore { isEnabled = defaults.bool(forKey: Key.enabledBeforeSession) }
+    }
+
+    private func tickSession() {
+        guard let session else {
+            sessionTimer?.invalidate()
+            sessionTimer = nil
+            sessionRemaining = nil
+            return
+        }
+        if session.hasEnded(at: .now) {
+            finishSession(completed: true, restore: true)
+            return
+        }
+        sessionRemaining = session.remaining(at: .now)
+        guard sessionTimer == nil else { return }
+        sessionTimer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in
+            MainActor.assumeIsolated { self?.tickSession() }
+        }
     }
 
     func toggle() { isEnabled.toggle() }

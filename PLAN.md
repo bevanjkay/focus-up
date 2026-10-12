@@ -21,6 +21,7 @@ Focus Up is a native macOS menu-bar app that keeps one app (or window) in focus 
 | Lists | Ignored Apps and Pinned Apps start empty; Utility app rule is a setting, off by default |
 | Own windows | Focus Up's windows float above the Overlay and are never blurred; Settings previews live |
 | Activation | Menu toggle; global hotkey `⌃⌥⌘F` (recordable); App Intents; Focus filter |
+| Focus Sessions | 15/25/45/60 min presets or a custom length; a countdown in the menu bar; +5 min and End; when it finishes, Focus Mode returns to its prior state and a notification appears |
 | Defaults | Restore the last Focus Mode state; launch at login off, offered on first run |
 | Localisation | String Catalog with US English as the base; docs in Australian English |
 

@@ -1,3 +1,4 @@
+import FocusCore
 import SwiftUI
 
 @main
@@ -10,6 +11,10 @@ struct FocusUpApp: App {
             MenuContent(controller: controller)
         } label: {
             Image(systemName: controller.isEnabled ? "circle.dashed.inset.filled" : "circle.dashed")
+            if let remaining = controller.sessionRemaining {
+                Text(FocusSession.format(remaining: remaining))
+                    .monospacedDigit()
+            }
         }
         .menuBarExtraStyle(.window)
 

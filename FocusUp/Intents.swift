@@ -91,6 +91,35 @@ struct SetFocusStyleIntent: AppIntent {
     }
 }
 
+struct StartFocusSessionIntent: AppIntent {
+    static let title: LocalizedStringResource = "Start Focus Session"
+    static let description = IntentDescription("Turns on Focus Mode for a set time, then turns it back off.")
+
+    @Parameter(title: "Minutes", default: 25, inclusiveRange: (1, 480))
+    var minutes: Int
+
+    static var parameterSummary: some ParameterSummary {
+        Summary("Start a \(\.$minutes)-minute Focus session")
+    }
+
+    @MainActor
+    func perform() async throws -> some IntentResult {
+        FocusController.shared.startSession(minutes: minutes)
+        return .result()
+    }
+}
+
+struct EndFocusSessionIntent: AppIntent {
+    static let title: LocalizedStringResource = "End Focus Session"
+    static let description = IntentDescription("Ends the running Focus session early.")
+
+    @MainActor
+    func perform() async throws -> some IntentResult {
+        FocusController.shared.endSession()
+        return .result()
+    }
+}
+
 /// Lets a system Focus (such as Work) drive Focus Mode. When the Focus ends, the system performs this again with
 /// default values, which turns Focus Mode off and restores any settings the Focus overrode.
 struct FocusUpFocusFilter: SetFocusFilterIntent {

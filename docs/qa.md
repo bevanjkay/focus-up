@@ -40,8 +40,15 @@ Run before each release, on macOS 27. Each item should pass in both app scope an
 - [ ] Revoking permission while running falls back to app scope gracefully.
 - [ ] Sheets, pop-overs and floating panels of the Focused Window stay sharp.
 
+## Focus Sessions
+- [ ] Each preset and a custom length start Focus Mode, with a countdown next to the menu bar icon.
+- [ ] +5 min extends the countdown; End returns Focus Mode to its state before the session.
+- [ ] When a session finishes, Focus Mode fades back and a "Focus session complete" notification appears.
+- [ ] Turning Focus Mode off by hand ends the session without a notification.
+- [ ] Quitting mid-session and relaunching resumes the countdown, or ends straight away if it's already over.
+
 ## Shortcuts and Focus
-- [ ] Toggle, Turn On, Turn Off and Set Focus Scope intents work from Shortcuts.
+- [ ] Toggle, Set Focus Mode, Set Focus Scope, Set Focus Style, Start Focus Session and End Focus Session work from Shortcuts.
 - [ ] A Focus filter on a system Focus (such as Work) switches Focus Mode and applies its scope and Intensity.
 
 ## Distribution
