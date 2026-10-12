@@ -333,6 +333,15 @@ kbd {
 .install { padding-block: 72px; border-top: 1px solid var(--border); }
 .install h2 { margin-bottom: 1.5rem; }
 .install-grid { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 40px; align-items: start; }
+.install-code {
+  margin: 0 0 1.25rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px 18px;
+  overflow-x: auto;
+}
+.install-code code { font-family: var(--mono); font-size: 0.875rem; }
 .steps { margin: 0 0 1rem; padding-left: 1.2rem; }
 .steps li { margin-bottom: 0.5rem; }
 .steps li::marker { color: var(--accent); font-weight: 600; }
