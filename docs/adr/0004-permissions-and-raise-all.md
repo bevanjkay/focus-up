@@ -14,4 +14,4 @@ Clicking one window of an app raises only that window. The app's other windows c
 ## Consequences
 
 - Most users never see a permission prompt.
-- Raise-all must be checked against cooperative activation on macOS 27 (M0 spike). If the system refuses it, the fallback is ordering below the lowest Focused App window and accepting interleaving.
+- Raise-all was verified on macOS 27 in the [M0 spikes](../../spikes/M0/README.md). Called from a background accessory app on an already-active app, it fixes interleaving and keeps the clicked window on top. The fallback isn't needed.
