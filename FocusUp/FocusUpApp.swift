@@ -4,6 +4,7 @@ import SwiftUI
 @main
 struct FocusUpApp: App {
     private let controller = FocusController.shared
+    private let updater = Updater.shared
     private let hasCompletedWelcome = UserDefaults.standard.bool(forKey: "hasCompletedWelcome")
 
     var body: some Scene {

@@ -20,6 +20,7 @@ struct SettingsView: View {
 
 private struct GeneralSettings: View {
     @Bindable var controller: FocusController
+    @Bindable private var updater = Updater.shared
     @State private var launchAtLogin = LaunchAtLogin.isEnabled
 
     var body: some View {
@@ -43,6 +44,10 @@ private struct GeneralSettings: View {
                 LabeledContent("Intensity") {
                     Slider(value: $controller.intensity, in: 0...1)
                 }
+            }
+            Section {
+                Toggle("Automatically check for updates", isOn: $updater.automaticallyChecksForUpdates)
+                Button("Check for Updates…") { updater.checkForUpdates() }
             }
             Section {
                 Toggle("Launch at login", isOn: $launchAtLogin)
