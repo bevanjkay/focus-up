@@ -29,6 +29,14 @@ private struct GeneralSettings: View {
                 KeyboardShortcuts.Recorder("Toggle shortcut:", name: .toggleFocusMode)
             }
             Section {
+                Picker("Scope", selection: $controller.scope) {
+                    ForEach(FocusScope.allCases, id: \.self) { Text($0.title).tag($0) }
+                }
+                if controller.needsAccessibilityPermission {
+                    PermissionNote(
+                        message: "Window scope needs Accessibility permission to follow the focused window.",
+                        action: "Allow Accessibility…", perform: AXFocusMonitor.requestTrust)
+                }
                 Picker("Style", selection: $controller.style) {
                     ForEach(FocusStyle.allCases, id: \.self) { Text($0.title).tag($0) }
                 }

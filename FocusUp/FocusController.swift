@@ -16,6 +16,7 @@ final class FocusController {
         static let ignoredApps = "ignoredBundleIDs"
         static let pinnedApps = "pinnedBundleIDs"
         static let utilityApps = "utilityAppsNeverTakeFocus"
+        static let scope = "focusScope"
     }
 
     private static let pollInterval: TimeInterval = 0.5
@@ -47,6 +48,19 @@ final class FocusController {
         }
     }
 
+    /// The scope the user chose. Window scope only takes effect once Accessibility is granted.
+    var scope: FocusScope {
+        didSet {
+            defaults.set(scope.rawValue, forKey: Key.scope)
+            if scope == .window, !AXFocusMonitor.isTrusted { AXFocusMonitor.requestTrust() }
+            updateEffectiveScope()
+        }
+    }
+
+    private(set) var effectiveScope: FocusScope = .app
+
+    var needsAccessibilityPermission: Bool { scope == .window && effectiveScope != .window }
+
     var ignoredBundleIDs: Set<String> {
         didSet { defaults.set(Array(ignoredBundleIDs).sorted(), forKey: Key.ignoredApps) }
     }
@@ -70,6 +84,8 @@ final class FocusController {
     @ObservationIgnored private var overlays: [UInt32: OverlayController] = [:]
     @ObservationIgnored private var lastPlan: OverlayPlan?
     @ObservationIgnored private var lastPlannedPID: Int32?
+    @ObservationIgnored private var lastAnchor: Int?
+    @ObservationIgnored private let focusMonitor = AXFocusMonitor()
     @ObservationIgnored private var pollTimer: Timer?
     @ObservationIgnored private var observers: [(NotificationCenter, NSObjectProtocol)] = []
 
@@ -93,6 +109,9 @@ final class FocusController {
         ignoredBundleIDs = Set(defaults.stringArray(forKey: Key.ignoredApps) ?? [])
         pinnedBundleIDs = Set(defaults.stringArray(forKey: Key.pinnedApps) ?? [])
         utilityAppsNeverTakeFocus = defaults.bool(forKey: Key.utilityApps)
+        scope = defaults.string(forKey: Key.scope).flatMap(FocusScope.init) ?? .app
+        effectiveScope = scope == .window && AXFocusMonitor.isTrusted ? .window : .app
+        focusMonitor.onChange = { [weak self] in self?.refresh() }
         wallpapers.onUpdate = { [weak self] in self?.refresh(force: true) }
         if style.hidesWindows { checkWallpaperAccess(requestingPermission: false) }
         KeyboardShortcuts.onKeyUp(for: .toggleFocusMode) { [weak self] in self?.isEnabled.toggle() }
@@ -124,6 +143,8 @@ final class FocusController {
         observers = []
         lastPlan = nil
         lastPlannedPID = nil
+        lastAnchor = nil
+        focusMonitor.stop()
         for overlay in overlays.values {
             overlay.apply(
                 .hidden, frame: .zero, cutouts: [], appearance: appearance, style: style, wallpaper: nil,
@@ -141,6 +162,14 @@ final class FocusController {
         observe(workspace, NSWorkspace.didWakeNotification) { [weak self] _ in self?.refresh(force: true) }
         observe(NotificationCenter.default, NSApplication.didChangeScreenParametersNotification) { [weak self] _ in
             self?.rebuildOverlays()
+        }
+        observe(DistributedNotificationCenter.default(), Notification.Name("com.apple.accessibility.api")) {
+            [weak self] _ in
+            // Posted before the trust change is visible to AXIsProcessTrusted.
+            Task { [weak self] in
+                try? await Task.sleep(for: .milliseconds(500))
+                self?.updateEffectiveScope()
+            }
         }
     }
 
@@ -174,8 +203,16 @@ final class FocusController {
         return FocusResolver.initialFocus(candidates: candidates, ownPID: SystemState.ownPID, rules: rules)
     }
 
+    private func updateEffectiveScope() {
+        let newScope: FocusScope = scope == .window && AXFocusMonitor.isTrusted ? .window : .app
+        guard newScope != effectiveScope else { return }
+        effectiveScope = newScope
+        if newScope == .app { raiseIfNeeded() }
+        refresh(force: true)
+    }
+
     private func raiseIfNeeded() {
-        guard let focusedApp,
+        guard effectiveScope == .app, let focusedApp,
             OverlayPlanner.needsRaiseAll(
                 pid: focusedApp.pid, windows: SystemState.windows(), ownPID: SystemState.ownPID),
             let runningApp = NSRunningApplication(processIdentifier: focusedApp.pid)
@@ -200,15 +237,25 @@ final class FocusController {
     private func refresh(force: Bool = false) {
         guard isEnabled else { return }
         let screens = NSScreen.screens
+        if effectiveScope == .window, !AXFocusMonitor.isTrusted { updateEffectiveScope() }
+        focusMonitor.watch(pid: effectiveScope == .window ? focusedApp?.pid : nil)
+        let target = focusedApp.map { app in
+            FocusTarget(
+                pid: app.pid,
+                windowFrame: effectiveScope == .window ? AXFocusMonitor.focusedWindowFrame(pid: app.pid) : nil)
+        }
         let plan = OverlayPlanner.plan(
-            target: focusedApp.map { FocusTarget(pid: $0.pid) }, windows: SystemState.windows(),
+            target: target, windows: SystemState.windows(),
             displays: screens.map(\.display), pinnedPIDs: pinnedPIDs, ownPID: SystemState.ownPID)
         // Re-apply even when the plan is unchanged: the anchor window may have moved in the stack (after
         // Raise-all, for example), and re-ordering an Overlay that is already in place is a no-op.
         let animated = !force && lastPlan != nil && plan != lastPlan
-        let crossfade = focusedApp?.pid != lastPlannedPID
+        // App scope re-anchors within the Focused App without a fade; in window scope a new anchor is a new focus.
+        let crossfade =
+            focusedApp?.pid != lastPlannedPID || (effectiveScope == .window && plan.orderBelowWindow != lastAnchor)
         lastPlan = plan
         lastPlannedPID = focusedApp?.pid
+        lastAnchor = plan.orderBelowWindow
 
         for screen in screens {
             let overlay = overlays[screen.displayID] ?? OverlayController(frame: screen.frame)
