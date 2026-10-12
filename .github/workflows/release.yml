@@ -1,0 +1,126 @@
+name: Release
+
+on:
+  push:
+    tags: ["v*.*.*"]
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    # Xcode 27 preview image; its default Xcode is 27.0.
+    runs-on: xcode-27
+    env:
+      APP_NAME: Focus Up
+      TEAM_ID: 7H96V6CNLG
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Set version
+        run: |
+          echo "VERSION=${GITHUB_REF_NAME#v}" >> "$GITHUB_ENV"
+          echo "BUILD=${{ github.run_number }}" >> "$GITHUB_ENV"
+
+      - name: Import Developer ID certificate
+        env:
+          DEVELOPER_ID_P12: ${{ secrets.DEVELOPER_ID_P12 }}
+          DEVELOPER_ID_P12_PASSWORD: ${{ secrets.DEVELOPER_ID_P12_PASSWORD }}
+        run: |
+          keychain="$RUNNER_TEMP/signing.keychain-db"
+          keychain_password="$(openssl rand -base64 24)"
+          security create-keychain -p "$keychain_password" "$keychain"
+          security set-keychain-settings -lut 21600 "$keychain"
+          security unlock-keychain -p "$keychain_password" "$keychain"
+          printf '%s' "$DEVELOPER_ID_P12" | base64 --decode > "$RUNNER_TEMP/developer-id.p12"
+          security import "$RUNNER_TEMP/developer-id.p12" -k "$keychain" -P "$DEVELOPER_ID_P12_PASSWORD" \
+            -T /usr/bin/codesign -T /usr/bin/security
+          rm "$RUNNER_TEMP/developer-id.p12"
+          security set-key-partition-list -S apple-tool:,apple: -s -k "$keychain_password" "$keychain" > /dev/null
+          security list-keychains -d user -s "$keychain" $(security list-keychains -d user | tr -d '"')
+          echo "KEYCHAIN=$keychain" >> "$GITHUB_ENV"
+
+      - name: Archive
+        run: |
+          xcodebuild archive \
+            -project FocusUp.xcodeproj \
+            -scheme FocusUp \
+            -configuration Release \
+            -destination 'generic/platform=macOS' \
+            -archivePath build/FocusUp.xcarchive \
+            -clonedSourcePackagesDirPath build/SourcePackages \
+            MARKETING_VERSION="$VERSION" \
+            CURRENT_PROJECT_VERSION="$BUILD" \
+            CODE_SIGN_STYLE=Manual \
+            CODE_SIGN_IDENTITY="Developer ID Application" \
+            DEVELOPMENT_TEAM="$TEAM_ID" \
+            OTHER_CODE_SIGN_FLAGS="--keychain $KEYCHAIN"
+
+      - name: Export
+        run: |
+          xcodebuild -exportArchive \
+            -archivePath build/FocusUp.xcarchive \
+            -exportOptionsPlist Config/ExportOptions.plist \
+            -exportPath build/export
+
+      - name: Write notarisation key
+        env:
+          NOTARY_KEY: ${{ secrets.NOTARY_KEY }}
+        run: |
+          printf '%s' "$NOTARY_KEY" > "$RUNNER_TEMP/notary.p8"
+          echo "NOTARY_KEY_PATH=$RUNNER_TEMP/notary.p8" >> "$GITHUB_ENV"
+
+      - name: Notarise and staple app
+        env:
+          NOTARY_KEY_ID: ${{ secrets.NOTARY_KEY_ID }}
+          NOTARY_ISSUER_ID: ${{ secrets.NOTARY_ISSUER_ID }}
+        run: |
+          ditto -c -k --keepParent "build/export/$APP_NAME.app" build/notarise.zip
+          xcrun notarytool submit build/notarise.zip \
+            --key "$NOTARY_KEY_PATH" --key-id "$NOTARY_KEY_ID" --issuer "$NOTARY_ISSUER_ID" --wait
+          xcrun stapler staple "build/export/$APP_NAME.app"
+
+      - name: Package
+        run: |
+          mkdir -p build/dist build/dmg
+          ditto -c -k --sequesterRsrc --keepParent "build/export/$APP_NAME.app" "build/dist/Focus-Up-$VERSION.zip"
+          cp -R "build/export/$APP_NAME.app" build/dmg/
+          ln -s /Applications build/dmg/Applications
+          hdiutil create -volname "$APP_NAME" -srcfolder build/dmg -format UDZO "build/dist/Focus-Up-$VERSION.dmg"
+          codesign --sign "Developer ID Application" --keychain "$KEYCHAIN" --timestamp "build/dist/Focus-Up-$VERSION.dmg"
+
+      - name: Notarise and staple disk image
+        env:
+          NOTARY_KEY_ID: ${{ secrets.NOTARY_KEY_ID }}
+          NOTARY_ISSUER_ID: ${{ secrets.NOTARY_ISSUER_ID }}
+        run: |
+          xcrun notarytool submit "build/dist/Focus-Up-$VERSION.dmg" \
+            --key "$NOTARY_KEY_PATH" --key-id "$NOTARY_KEY_ID" --issuer "$NOTARY_ISSUER_ID" --wait
+          xcrun stapler staple "build/dist/Focus-Up-$VERSION.dmg"
+
+      - name: Write appcast
+        env:
+          SPARKLE_PRIVATE_KEY: ${{ secrets.SPARKLE_PRIVATE_KEY }}
+        run: |
+          scripts/make-appcast.sh \
+            build/SourcePackages/artifacts/sparkle/Sparkle/bin/sign_update \
+            "$VERSION" "$BUILD" "build/dist/Focus-Up-$VERSION.zip" \
+            "https://github.com/${{ github.repository }}/releases/download/$GITHUB_REF_NAME/Focus-Up-$VERSION.zip" \
+            build/dist/appcast.xml
+
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" build/dist/* \
+            --title "Focus Up $VERSION" --generate-notes --verify-tag
+
+      - name: Clean up
+        if: always()
+        run: |
+          rm -f "$RUNNER_TEMP/notary.p8"
+          [ -n "${KEYCHAIN:-}" ] && security delete-keychain "$KEYCHAIN" || true

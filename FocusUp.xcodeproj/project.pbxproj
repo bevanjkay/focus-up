@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		13253E19F39AB9A3F9724BB7 /* KeyboardShortcuts in Frameworks */ = {isa = PBXBuildFile; productRef = F56482A4150117098D83774A /* KeyboardShortcuts */; };
+		A1F0C0DE5A4B4C1E8F00B001 /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = A1F0C0DE5A4B4C1E8F00B003 /* Sparkle */; };
 		F24DA12E4BACE397EA7E4197 /* FocusCore in Frameworks */ = {isa = PBXBuildFile; productRef = 0B64CA9A112A3F7F3DBE98AD /* FocusCore */; };
 /* End PBXBuildFile section */
 
@@ -35,6 +36,7 @@
 			files = (
 				F24DA12E4BACE397EA7E4197 /* FocusCore in Frameworks */,
 				13253E19F39AB9A3F9724BB7 /* KeyboardShortcuts in Frameworks */,
+				A1F0C0DE5A4B4C1E8F00B001 /* Sparkle in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -88,6 +90,7 @@
 			packageProductDependencies = (
 				0B64CA9A112A3F7F3DBE98AD /* FocusCore */,
 				F56482A4150117098D83774A /* KeyboardShortcuts */,
+				A1F0C0DE5A4B4C1E8F00B003 /* Sparkle */,
 			);
 			productName = FocusUp;
 			productReference = 6C0B1E4F3DE42EE553C5B917 /* FocusUp.app */;
@@ -118,6 +121,7 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				811A942650C2F221ECD24A11 /* XCRemoteSwiftPackageReference "KeyboardShortcuts" */,
+				A1F0C0DE5A4B4C1E8F00B002 /* XCRemoteSwiftPackageReference "Sparkle" */,
 				07073E901A661DF99C691D2D /* XCLocalSwiftPackageReference "Packages/FocusCore" */,
 			);
 			preferredProjectObjectVersion = 77;
@@ -161,6 +165,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Config/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "Focus Up";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
 				INFOPLIST_KEY_LSUIElement = YES;
@@ -314,6 +319,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Config/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "Focus Up";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
 				INFOPLIST_KEY_LSUIElement = YES;
@@ -369,6 +375,14 @@
 				minimumVersion = 3.1.0;
 			};
 		};
+		A1F0C0DE5A4B4C1E8F00B002 /* XCRemoteSwiftPackageReference "Sparkle" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/sparkle-project/Sparkle";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.10.0;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -380,6 +394,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 811A942650C2F221ECD24A11 /* XCRemoteSwiftPackageReference "KeyboardShortcuts" */;
 			productName = KeyboardShortcuts;
+		};
+		A1F0C0DE5A4B4C1E8F00B003 /* Sparkle */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A1F0C0DE5A4B4C1E8F00B002 /* XCRemoteSwiftPackageReference "Sparkle" */;
+			productName = Sparkle;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

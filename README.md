@@ -10,6 +10,10 @@ Focus Up is a native macOS menu-bar app that keeps one app in focus by blurring 
 - macOS 27 or later
 - Xcode 27 to build
 
+## Installing
+
+Download the DMG from the [latest release](https://github.com/bevanjkay/focus-up/releases/latest). Focus Up updates itself with Sparkle.
+
 ## Building
 
 ```sh
@@ -24,6 +28,10 @@ swift format lint --strict --recursive FocusUp Packages
 ```
 
 New source files only need to be added to the `FocusUp/` folder; the project uses a synchronised folder, so there's no need to edit the project file.
+
+## Releasing
+
+See [docs/releasing.md](docs/releasing.md).
 
 ## Licence
 
