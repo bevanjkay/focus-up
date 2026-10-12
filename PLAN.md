@@ -38,7 +38,7 @@ Pure logic driven by value types and protocols, so all of it is testable with fa
 - `WindowSnapshot`: window number, PID, bundle ID, frame, layer, on-screen flag, display.
 - `FocusSettings`: scope, Intensity, Ignored and Pinned bundle IDs, Utility app rule.
 - `FocusResolver`: (activation event, previous focus, settings, app metadata) → new `FocusTarget` or "keep previous". Applies Ignored Apps and the Utility app rule.
-- `OverlayPlanner`: (`FocusTarget`, window snapshots, displays) → per-display `OverlayPlan` with visibility, the window number to order below, Cut-out rects and whether Raise-all is needed. Covers full-screen and "nothing to keep sharp".
+- `OverlayPlanner`: (`FocusTarget`, window snapshots, displays) → per-display `OverlayPlan` with visibility, the window number to order below, Cut-out rects and whether Raise-all is needed. Covers "nothing to keep sharp". Full-screen Spaces are handled by the system (see the M0 spikes).
 - `CutoutGeometry`: converts pinned window frames into per-display mask rects (flips coordinates between CG and AppKit).
 - Protocols the app implements: `WindowListProviding`, `ActivationSource`, `FocusedWindowSource`.
 
@@ -101,8 +101,8 @@ Each milestone ends with its tests green and the relevant `docs/qa.md` items che
 
 ## Risks
 
-- **Cross-process ordering or behind-window blur behaves differently on macOS 27.** Caught in M0, before anything else is built.
-- **Cooperative activation refuses Raise-all.** Fallback: order below the lowest Focused App window (ADR 4).
-- **Stage Manager or full-screen ordering surprises.** Spiked in M0 and covered in the QA checklist.
+- ~~**Cross-process ordering or behind-window blur behaves differently on macOS 27.**~~ Both verified in M0.
+- ~~**Cooperative activation refuses Raise-all.**~~ Verified working in M0.
+- **Stage Manager ordering surprises.** Full-screen was verified in M0. Stage Manager is still a manual check (covered in the QA checklist).
 - **Cut-out lag on fast drags.** Accepted; tune the poll rate if it's noticeable.
 - **GPU and battery cost of full-screen behind-window blur on several displays.** Measure in M4 with Instruments, and hide Overlays on displays that have nothing to blur.
