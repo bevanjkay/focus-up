@@ -11,7 +11,8 @@ Focus Up is a native macOS menu-bar app that keeps one app (or window) in focus 
 | Form | Menu-bar only (`LSUIElement`), with a SwiftUI `MenuBarExtra` and a Settings window |
 | Distribution | GitHub Releases, signed with Developer ID and notarised; updates through Sparkle. No App Store. |
 | Focus Scope | App by default with Raise-all; window scope optional (needs Accessibility) |
-| Effect | Public API material blur plus dim; one Intensity slider (opacity and dim) |
+| Effect | Public API material blur plus dim; one Intensity slider (dim; blur stays fully opaque) |
+| Focus Style | Blur (default), Hide (show desktop) or Hide (blur desktop): the hide styles paint the wallpaper over other windows ([ADR 5](docs/adr/0005-hide-styles-paint-the-wallpaper.md)) |
 | Displays | One Overlay per display; Focused App sharp wherever it is |
 | Spaces | Overlay joins all Spaces; hidden when the Focused App is full-screen; Stage Manager strip blurred |
 | Clicks | Overlay is click-through; clicking a blurred window focuses it |
@@ -20,6 +21,7 @@ Focus Up is a native macOS menu-bar app that keeps one app (or window) in focus 
 | Lists | Ignored Apps and Pinned Apps start empty; Utility app rule is a setting, off by default |
 | Own windows | Focus Up's windows float above the Overlay and are never blurred; Settings previews live |
 | Activation | Menu toggle; global hotkey `⌃⌥⌘F` (recordable); App Intents; Focus filter |
+| Focus Sessions | 15/25/45/60 min presets or a custom length; a countdown in the menu bar; +5 min and End; when it finishes, Focus Mode returns to its prior state and a notification appears |
 | Defaults | Restore the last Focus Mode state; launch at login off, offered on first run |
 | Localisation | String Catalog with US English as the base; docs in Australian English |
 
@@ -38,7 +40,7 @@ Pure logic driven by value types and protocols, so all of it is testable with fa
 - `WindowSnapshot`: window number, PID, bundle ID, frame, layer, on-screen flag, display.
 - `FocusSettings`: scope, Intensity, Ignored and Pinned bundle IDs, Utility app rule.
 - `FocusResolver`: (activation event, previous focus, settings, app metadata) → new `FocusTarget` or "keep previous". Applies Ignored Apps and the Utility app rule.
-- `OverlayPlanner`: (`FocusTarget`, window snapshots, displays) → per-display `OverlayPlan` with visibility, the window number to order below, Cut-out rects and whether Raise-all is needed. Covers full-screen and "nothing to keep sharp".
+- `OverlayPlanner`: (`FocusTarget`, window snapshots, displays) → per-display `OverlayPlan` with visibility, the window number to order below, Cut-out rects and whether Raise-all is needed. Covers "nothing to keep sharp". Full-screen Spaces are handled by the system (see the M0 spikes).
 - `CutoutGeometry`: converts pinned window frames into per-display mask rects (flips coordinates between CG and AppKit).
 - Protocols the app implements: `WindowListProviding`, `ActivationSource`, `FocusedWindowSource`.
 
@@ -81,7 +83,7 @@ Each milestone ends with its tests green and the relevant `docs/qa.md` items che
    - Overlay behaviour with Stage Manager and full-screen.
 1. **Project skeleton**:
    - Xcode project, `FocusCore` package and String Catalog.
-   - SwiftLint/SwiftFormat config.
+   - `swift format` config (bundled with Xcode, so CI needs no extra installs).
    - GitHub Actions `checks.yml` running build and test on PRs.
    - README and LICENSE.
 2. **FocusCore, test first**: `FocusResolver`, `OverlayPlanner` and `CutoutGeometry`, with fakes for every case in the decision table.
@@ -101,8 +103,8 @@ Each milestone ends with its tests green and the relevant `docs/qa.md` items che
 
 ## Risks
 
-- **Cross-process ordering or behind-window blur behaves differently on macOS 27.** Caught in M0, before anything else is built.
-- **Cooperative activation refuses Raise-all.** Fallback: order below the lowest Focused App window (ADR 4).
-- **Stage Manager or full-screen ordering surprises.** Spiked in M0 and covered in the QA checklist.
+- ~~**Cross-process ordering or behind-window blur behaves differently on macOS 27.**~~ Both verified in M0.
+- ~~**Cooperative activation refuses Raise-all.**~~ Verified working in M0.
+- **Stage Manager ordering surprises.** Full-screen was verified in M0. Stage Manager is still a manual check (covered in the QA checklist).
 - **Cut-out lag on fast drags.** Accepted; tune the poll rate if it's noticeable.
 - **GPU and battery cost of full-screen behind-window blur on several displays.** Measure in M4 with Instruments, and hide Overlays on displays that have nothing to blur.

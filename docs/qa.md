@@ -6,6 +6,7 @@ Run before each release, on macOS 27. Each item should pass in both app scope an
 - [ ] Toggle Focus Mode from the menu, `⌃⌥⌘F` and a recorded custom hotkey.
 - [ ] Switching apps with ⌘-Tab, the Dock and a click moves the blur within about 200 ms, with no flash of unblurred content.
 - [ ] App scope: an app with windows interleaved behind other apps has all its windows sharp after activation (Raise-all).
+- [ ] App scope: switching between windows of the Focused App doesn't fade the blur.
 - [ ] Clicking a blurred area focuses the window underneath.
 - [ ] Finder with only the desktop focused, or an app with all windows minimised, hides the Overlay.
 - [ ] Reduce Motion on gives instant transitions.
@@ -17,6 +18,13 @@ Run before each release, on macOS 27. Each item should pass in both app scope an
 - [ ] Switching Spaces keeps the Overlay present and correct.
 - [ ] A full-screen Focused App shows no Overlay; leaving full-screen restores it.
 - [ ] Stage Manager: the side strip is blurred, and switching stages behaves.
+
+## Focus Style
+- [ ] Hide (show desktop) covers every other window with the wallpaper, with the right scaling on each display.
+- [ ] Hide (blur desktop) shows the wallpaper blurred and dimmed.
+- [ ] A wallpaper from a system folder or Pictures shows without Screen Recording permission.
+- [ ] A wallpaper from a wallpaper app (such as Unsplash) prompts for Screen Recording, then shows correctly.
+- [ ] Changing the wallpaper while a hide style is on updates within a refresh.
 
 ## Settings and lists
 - [ ] Focus Up's Settings window is never blurred and previews Intensity changes live.
@@ -32,8 +40,15 @@ Run before each release, on macOS 27. Each item should pass in both app scope an
 - [ ] Revoking permission while running falls back to app scope gracefully.
 - [ ] Sheets, pop-overs and floating panels of the Focused Window stay sharp.
 
+## Focus Sessions
+- [ ] Each preset and a custom length start Focus Mode, with a countdown next to the menu bar icon.
+- [ ] +5 min extends the countdown; End returns Focus Mode to its state before the session.
+- [ ] When a session finishes, Focus Mode fades back and a "Focus session complete" notification appears.
+- [ ] Turning Focus Mode off by hand ends the session without a notification.
+- [ ] Quitting mid-session and relaunching resumes the countdown, or ends straight away if it's already over.
+
 ## Shortcuts and Focus
-- [ ] Toggle, Turn On, Turn Off and Set Focus Scope intents work from Shortcuts.
+- [ ] Toggle, Set Focus Mode, Set Focus Scope, Set Focus Style, Start Focus Session and End Focus Session work from Shortcuts.
 - [ ] A Focus filter on a system Focus (such as Work) switches Focus Mode and applies its scope and Intensity.
 
 ## Distribution

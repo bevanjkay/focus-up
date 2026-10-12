@@ -8,7 +8,9 @@ Users want adjustable intensity. A true blur-radius control needs private API (`
 
 ## Decision
 
-Use only `NSVisualEffectView` materials. The single Intensity slider controls Overlay opacity and dim, not the blur radius.
+Use only `NSVisualEffectView` materials. The blur stays fully opaque and the single Intensity slider controls the dim.
+
+Intensity originally also lowered the blur's opacity. Live testing in M3 showed that even 85% opacity lets text and edges ghost through and reads as broken, so the blur never goes below full opacity.
 
 ## Consequences
 

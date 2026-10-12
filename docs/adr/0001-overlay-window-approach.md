@@ -20,4 +20,5 @@ The Overlay sits at normal window level. Floating windows (Picture in Picture, p
 
 - No permission is needed for app scope.
 - The Focused App's windows must be contiguous at the top of the stack for app scope to look right. See Raise-all in [ADR 4](0004-permissions-and-raise-all.md).
-- Cross-process `order(_:relativeTo:)` and behind-window blur of other apps must be verified in the M0 spike on macOS 27.
+- Cross-process `order(_:relativeTo:)` and behind-window blur of other apps were both verified on macOS 27 in the [M0 spikes](../../spikes/M0/README.md).
+- With `.canJoinAllSpaces` and `.fullScreenNone`, the system keeps the Overlay off full-screen Spaces, so "hidden in full-screen" needs no detection code.

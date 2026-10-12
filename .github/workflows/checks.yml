@@ -1,0 +1,37 @@
+name: Checks
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: checks-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    # Xcode 27 preview image; its default Xcode is 27.0.
+    runs-on: xcode-27
+    steps:
+      - uses: actions/checkout@v5
+
+      - run: xcodebuild -version
+
+      - name: Lint
+        run: swift format lint --strict --recursive FocusUp Packages
+
+      - name: Test FocusCore
+        run: swift test --package-path Packages/FocusCore
+
+      - name: Build app
+        run: |
+          xcodebuild build \
+            -project FocusUp.xcodeproj \
+            -scheme FocusUp \
+            -configuration Debug \
+            -destination 'platform=macOS' \
+            CODE_SIGNING_ALLOWED=NO
