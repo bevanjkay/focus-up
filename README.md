@@ -14,7 +14,11 @@ Focus Up is a native macOS menu-bar app that keeps one app in focus by blurring 
 
 ## Installing
 
-Download the DMG from the [latest release](https://github.com/bevanjkay/focus-up/releases/latest). Focus Up updates itself with Sparkle.
+```sh
+brew install --cask bevanjkay/tap/focus-up
+```
+
+Or download the DMG from the [latest release](https://github.com/bevanjkay/focus-up/releases/latest). Focus Up updates itself with Sparkle.
 
 ## Building
 
