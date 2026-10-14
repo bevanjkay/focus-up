@@ -1,0 +1,164 @@
+version: 2
+updates:
+  - package-ecosystem: npm
+    directories:
+      - /
+      - /**/*
+    schedule:
+      interval: monthly
+      time: !!str 08:00
+      timezone: Australia/Melbourne
+    groups:
+      npm-dependencies:
+        applies-to: version-updates
+        patterns:
+          - "*"
+      npm-dependencies-security:
+        applies-to: security-updates
+        patterns:
+          - "*"
+    ignore:
+      # TypeScript 7 is the native compiler line. Hold every repository on 6.x
+      # until it has been migrated by hand.
+      - dependency-name: typescript
+        versions:
+          - ">=7"
+    cooldown:
+      default-days: 7
+  - package-ecosystem: github-actions
+    directory: /
+    exclude-paths:
+      - .github/workflows/actionlint.yml
+    schedule:
+      interval: monthly
+      time: !!str 08:00
+      timezone: Australia/Melbourne
+    groups:
+      gh-actions:
+        applies-to: version-updates
+        patterns:
+          - "*"
+      gh-actions-security:
+        applies-to: security-updates
+        patterns:
+          - "*"
+    cooldown:
+      default-days: 7
+  - package-ecosystem: docker
+    directories:
+      - /
+      - /**/*
+    schedule:
+      interval: monthly
+      time: !!str 08:00
+      timezone: Australia/Melbourne
+    groups:
+      docker-dependencies:
+        applies-to: version-updates
+        patterns:
+          - "*"
+      docker-dependencies-security:
+        applies-to: security-updates
+        patterns:
+          - "*"
+    ignore:
+      # Datastore majors are migrations, not version bumps. Postgres needs a
+      # pg_upgrade or a dump/restore, and the 18 image additionally moved PGDATA
+      # to /var/lib/postgresql/<major>/docker, so a compose mount written for
+      # 17 or earlier is silently the wrong path. Redis data survives a major,
+      # but its licence and defaults have not. MySQL rewrites its data files
+      # on start and cannot be downgraded. Bump them all by hand. The leading
+      # `*` matches namespaced images such as library/postgres and
+      # immich-app/postgres, which a bare name does not.
+      - dependency-name: "*postgres"
+        update-types:
+          - version-update:semver-major
+      - dependency-name: "*redis"
+        update-types:
+          - version-update:semver-major
+      - dependency-name: "*valkey"
+        update-types:
+          - version-update:semver-major
+      - dependency-name: "*mysql"
+        update-types:
+          - version-update:semver-major
+    cooldown:
+      default-days: 7
+  - package-ecosystem: docker-compose
+    directories:
+      - /
+      - /**/*
+    schedule:
+      interval: monthly
+      time: !!str 08:00
+      timezone: Australia/Melbourne
+    groups:
+      docker-compose-dependencies:
+        applies-to: version-updates
+        patterns:
+          - "*"
+      docker-compose-dependencies-security:
+        applies-to: security-updates
+        patterns:
+          - "*"
+    ignore:
+      # Datastore majors are migrations, not version bumps. Postgres needs a
+      # pg_upgrade or a dump/restore, and the 18 image additionally moved PGDATA
+      # to /var/lib/postgresql/<major>/docker, so a compose mount written for
+      # 17 or earlier is silently the wrong path. Redis data survives a major,
+      # but its licence and defaults have not. MySQL rewrites its data files
+      # on start and cannot be downgraded. Bump them all by hand. The leading
+      # `*` matches namespaced images such as library/postgres and
+      # immich-app/postgres, which a bare name does not.
+      - dependency-name: "*postgres"
+        update-types:
+          - version-update:semver-major
+      - dependency-name: "*redis"
+        update-types:
+          - version-update:semver-major
+      - dependency-name: "*valkey"
+        update-types:
+          - version-update:semver-major
+      - dependency-name: "*mysql"
+        update-types:
+          - version-update:semver-major
+    cooldown:
+      default-days: 7
+  - package-ecosystem: pip
+    directories:
+      - /
+      - /**/*
+    schedule:
+      interval: monthly
+      time: !!str 08:00
+      timezone: Australia/Melbourne
+    groups:
+      pip-dependencies:
+        applies-to: version-updates
+        patterns:
+          - "*"
+      pip-dependencies-security:
+        applies-to: security-updates
+        patterns:
+          - "*"
+    cooldown:
+      default-days: 7
+  - package-ecosystem: deno
+    directories:
+      - /
+      - /**/*
+    schedule:
+      interval: monthly
+      time: !!str 08:00
+      timezone: Australia/Melbourne
+    groups:
+      deno-dependencies:
+        applies-to: version-updates
+        patterns:
+          - "*"
+      deno-dependencies-security:
+        applies-to: security-updates
+        patterns:
+          - "*"
+    cooldown:
+      default-days: 7

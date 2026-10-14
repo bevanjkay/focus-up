@@ -17,7 +17,9 @@ jobs:
     # Xcode 27 preview image; its default Xcode is 27.0.
     runs-on: xcode-27
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - run: xcodebuild -version
 
