@@ -2,7 +2,7 @@ import AppKit
 import FocusCore
 
 /// A borderless, click-through panel that blurs or hides (behind the wallpaper) and dims everything below it,
-/// except for Cut-outs.
+/// except for Cut-outs. While revealing, it covers only the given rects.
 final class OverlayPanel: NSPanel {
     private let wallpaperView = WallpaperView()
     private let wallpaperMask = CAShapeLayer()
@@ -12,6 +12,7 @@ final class OverlayPanel: NSPanel {
     private(set) var orderedBelowWindow: Int?
     private var overlayAppearance: OverlayAppearance?
     private var cutouts: [CGRect]?
+    private var revealing: [CGRect]?
     private var style: FocusStyle?
     private var wallpaper: Wallpaper?
 
@@ -54,7 +55,8 @@ final class OverlayPanel: NSPanel {
     override var canBecomeMain: Bool { false }
 
     func configure(
-        frame: NSRect, appearance: OverlayAppearance, cutouts: [CGRect], style: FocusStyle, wallpaper: Wallpaper?
+        frame: NSRect, appearance: OverlayAppearance, cutouts: [CGRect], revealing: [CGRect]? = nil,
+        style: FocusStyle, wallpaper: Wallpaper?
     ) {
         if self.frame != frame {
             setFrame(frame, display: false)
@@ -64,15 +66,30 @@ final class OverlayPanel: NSPanel {
             dimView.alphaValue = appearance.dimOpacity
             overlayAppearance = appearance
         }
-        if cutouts != self.cutouts {
-            setCutouts(cutouts, size: frame.size)
-            self.cutouts = cutouts
-        }
+        setCoverage(cutouts: cutouts, revealing: revealing)
         if style != self.style || wallpaper != self.wallpaper {
             setStyle(style, wallpaper: wallpaper)
             self.style = style
             self.wallpaper = wallpaper
         }
+    }
+
+    func setCoverage(cutouts: [CGRect], revealing: [CGRect]? = nil) {
+        guard cutouts != self.cutouts || revealing != self.revealing else { return }
+        let bounds = NSRect(origin: .zero, size: frame.size)
+        let covered = revealing.map(Self.union) ?? CGPath(rect: bounds, transform: nil)
+        let path = covered.subtracting(Self.union(cutouts))
+        CATransaction.begin()
+        CATransaction.setDisableActions(true)
+        for mask in [dimMask, wallpaperMask] {
+            mask.frame = bounds
+            mask.path = path
+        }
+        CATransaction.commit()
+        effectView.maskImage =
+            cutouts.isEmpty && revealing == nil ? nil : Self.maskImage(size: frame.size, path: path)
+        self.cutouts = cutouts
+        self.revealing = revealing
     }
 
     func order(below windowNumber: Int) {
@@ -85,21 +102,6 @@ final class OverlayPanel: NSPanel {
         orderedBelowWindow = nil
     }
 
-    private func setCutouts(_ cutouts: [CGRect], size: NSSize) {
-        let bounds = NSRect(origin: .zero, size: size)
-        let path = CGMutablePath()
-        path.addRect(bounds)
-        for cutout in cutouts { path.addRect(cutout) }
-        CATransaction.begin()
-        CATransaction.setDisableActions(true)
-        for mask in [dimMask, wallpaperMask] {
-            mask.frame = bounds
-            mask.path = path
-        }
-        CATransaction.commit()
-        effectView.maskImage = cutouts.isEmpty ? nil : Self.maskImage(size: size, holes: cutouts)
-    }
-
     private func setStyle(_ style: FocusStyle, wallpaper: Wallpaper?) {
         wallpaperView.isHidden = !style.hidesWindows
         effectView.isHidden = style == .hide
@@ -108,11 +110,16 @@ final class OverlayPanel: NSPanel {
         wallpaperView.wallpaper = wallpaper
     }
 
-    private static func maskImage(size: NSSize, holes: [CGRect]) -> NSImage {
-        NSImage(size: size, flipped: false) { rect in
-            NSColor.black.setFill()
-            rect.fill()
-            for hole in holes { hole.fill(using: .clear) }
+    private static func union(_ rects: [CGRect]) -> CGPath {
+        rects.reduce(CGMutablePath() as CGPath) { $0.union(CGPath(rect: $1, transform: nil)) }
+    }
+
+    private static func maskImage(size: NSSize, path: CGPath) -> NSImage {
+        NSImage(size: size, flipped: false) { _ in
+            guard let context = NSGraphicsContext.current?.cgContext else { return false }
+            context.addPath(path)
+            context.setFillColor(.black)
+            context.fillPath()
             return true
         }
     }

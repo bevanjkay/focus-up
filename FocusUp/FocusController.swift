@@ -344,8 +344,9 @@ final class FocusController {
             let overlay = overlays[screen.displayID] ?? OverlayController(frame: screen.frame)
             overlays[screen.displayID] = overlay
             overlay.apply(
-                plan, frame: screen.frame, cutouts: plan.cutouts[screen.displayID] ?? [], appearance: appearance,
-                style: style, wallpaper: style.hidesWindows ? wallpapers.wallpaper(for: screen) : nil,
+                plan, frame: screen.frame, cutouts: plan.cutouts[screen.displayID] ?? [],
+                sharpRects: plan.sharpRects[screen.displayID] ?? [], appearance: appearance, style: style,
+                wallpaper: style.hidesWindows ? wallpapers.wallpaper(for: screen) : nil,
                 animated: animated, crossfade: crossfade)
         }
         schedulePolling(interval: plan.cutouts.isEmpty ? Self.pollInterval : Self.pinnedPollInterval)

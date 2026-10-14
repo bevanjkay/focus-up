@@ -80,6 +80,17 @@ struct OverlayPlannerTests {
         #expect(plan(FocusTarget(pid: safariPID), windows, pinned: [safariPID]).cutouts.isEmpty)
     }
 
+    @Test func windowsAboveTheOverlayAreSharpOnTheirDisplay() {
+        let windows = [
+            window(200, pid: notesPID, CGRect(x: 3500, y: 200, width: 300, height: 100)),
+            window(101, pid: safariPID, CGRect(x: 0, y: 0, width: 800, height: 600)),
+            window(300, pid: musicPID, CGRect(x: 100, y: 100, width: 800, height: 600)),
+        ]
+        let result = plan(FocusTarget(pid: safariPID), windows)
+        #expect(result.sharpRects[mainDisplay.id] == [CGRect(x: 0, y: 840, width: 800, height: 600)])
+        #expect(result.sharpRects[laptopDisplay.id] == [CGRect(x: 60, y: 962, width: 300, height: 100)])
+    }
+
     @Test func raiseAllNeededWhenFocusedWindowsAreInterleaved() {
         let windows = [
             window(101, pid: safariPID, .zero.insetBy(dx: -10, dy: -10)),
