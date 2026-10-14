@@ -17,7 +17,7 @@ Focus Up is a native macOS menu-bar app that keeps one app (or window) in focus 
 | Spaces | Overlay joins all Spaces; hidden when the Focused App is full-screen; Stage Manager strip blurred |
 | Clicks | Overlay is click-through; clicking a blurred window focuses it |
 | Nothing to keep sharp | Overlay hides |
-| Transitions | Fade of about 200 ms; instant with Reduce Motion |
+| Transitions | Fade of about 350 ms over only the newly blurred area; instant with Reduce Motion |
 | Lists | Ignored Apps and Pinned Apps start empty; Utility app rule is a setting, off by default |
 | Own windows | Focus Up's windows float above the Overlay and are never blurred; Settings previews live |
 | Activation | Menu toggle; global hotkey `⌃⌥⌘F` (recordable); App Intents; Focus filter |

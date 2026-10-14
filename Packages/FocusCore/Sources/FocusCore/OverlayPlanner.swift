@@ -6,6 +6,8 @@ public struct OverlayPlan: Equatable, Sendable {
     public var orderBelowWindow: Int?
     /// Cut-out rects per display ID, in display-local AppKit coordinates.
     public var cutouts: [UInt32: [CGRect]]
+    /// Frames of the windows in front of the Overlay per display ID, in display-local AppKit coordinates.
+    public var sharpRects: [UInt32: [CGRect]] = [:]
 
     public static let hidden = OverlayPlan(isVisible: false, orderBelowWindow: nil, cutouts: [:])
 }
@@ -23,12 +25,10 @@ public enum OverlayPlanner {
         guard let anchor = anchorWindow(for: target, in: focused) else { return .hidden }
 
         let pinnedFrames = candidates.filter { pinnedPIDs.contains($0.pid) && $0.pid != target.pid }.map(\.frame)
-        var cutouts: [UInt32: [CGRect]] = [:]
-        for display in displays {
-            let rects = CutoutGeometry.localRects(for: pinnedFrames, in: display.frame)
-            if !rects.isEmpty { cutouts[display.id] = rects }
-        }
-        return OverlayPlan(isVisible: true, orderBelowWindow: anchor.number, cutouts: cutouts)
+        let sharpFrames = candidates.prefix { $0.number != anchor.number }.map(\.frame) + [anchor.frame]
+        return OverlayPlan(
+            isVisible: true, orderBelowWindow: anchor.number, cutouts: localRects(pinnedFrames, on: displays),
+            sharpRects: localRects(sharpFrames, on: displays))
     }
 
     /// Whether another app's window sits between the Focused App's windows, so Raise-all is needed.
@@ -36,6 +36,15 @@ public enum OverlayPlanner {
         let candidates = normalWindows(windows, ownPID: ownPID)
         guard let lowest = candidates.lastIndex(where: { $0.pid == pid }) else { return false }
         return candidates[...lowest].contains { $0.pid != pid }
+    }
+
+    private static func localRects(_ frames: [CGRect], on displays: [Display]) -> [UInt32: [CGRect]] {
+        var rects: [UInt32: [CGRect]] = [:]
+        for display in displays {
+            let local = CutoutGeometry.localRects(for: frames, in: display.frame)
+            if !local.isEmpty { rects[display.id] = local }
+        }
+        return rects
     }
 
     private static func normalWindows(_ windows: [WindowInfo], ownPID: Int32) -> [WindowInfo] {
