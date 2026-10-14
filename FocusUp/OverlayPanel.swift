@@ -74,7 +74,7 @@ final class OverlayPanel: NSPanel {
         }
     }
 
-    func setCoverage(cutouts: [CGRect], revealing: [CGRect]? = nil) {
+    private func setCoverage(cutouts: [CGRect], revealing: [CGRect]? = nil) {
         guard cutouts != self.cutouts || revealing != self.revealing else { return }
         let bounds = NSRect(origin: .zero, size: frame.size)
         let covered = revealing.map(Self.union) ?? CGPath(rect: bounds, transform: nil)
