@@ -48,6 +48,7 @@ private struct GeneralSettings: View {
             Section {
                 Toggle("Automatically check for updates", isOn: $updater.automaticallyChecksForUpdates)
                 Button("Check for Updates…") { updater.checkForUpdates() }
+                LabeledContent("Version", value: appVersion)
             }
             Section {
                 Toggle("Launch at login", isOn: $launchAtLogin)
@@ -58,6 +59,13 @@ private struct GeneralSettings: View {
             }
         }
         .formStyle(.grouped)
+    }
+
+    private var appVersion: String {
+        let info = Bundle.main.infoDictionary
+        let version = info?["CFBundleShortVersionString"] as? String ?? "?"
+        let build = info?["CFBundleVersion"] as? String ?? "?"
+        return "\(version) (\(build))"
     }
 }
 
