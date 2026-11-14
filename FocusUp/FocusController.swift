@@ -26,6 +26,10 @@ final class FocusController {
     private static let pinnedPollInterval: TimeInterval = 1.0 / 15
     /// Raise-all is asynchronous, so re-plan once the raised windows have settled.
     private static let raiseSettleDelay: Duration = .milliseconds(150)
+    /// An app activates before its windows come forward, so the Overlay is first ordered below a window that is
+    /// still behind the previous focus. Re-plan every frame until the window server has caught up.
+    private static let activationSettleInterval: Duration = .milliseconds(16)
+    private static let activationSettleRefreshes = 20
 
     var isEnabled: Bool {
         didSet {
@@ -103,6 +107,7 @@ final class FocusController {
     @ObservationIgnored private var lastAnchor: Int?
     @ObservationIgnored private let focusMonitor = AXFocusMonitor()
     @ObservationIgnored private var pollTimer: Timer?
+    @ObservationIgnored private var activationSettling: Task<Void, Never>?
     @ObservationIgnored private var observers: [(NotificationCenter, NSObjectProtocol)] = []
 
     var rules: FocusRules {
@@ -275,6 +280,14 @@ final class FocusController {
         focusedApp = resolved
         raiseIfNeeded()
         refresh()
+        activationSettling?.cancel()
+        activationSettling = Task { [weak self] in
+            for _ in 0..<Self.activationSettleRefreshes {
+                try? await Task.sleep(for: Self.activationSettleInterval)
+                guard !Task.isCancelled else { return }
+                self?.refresh()
+            }
+        }
     }
 
     private func initialFocus() -> AppInfo? {
